@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.local
+.env.production
+*.log
+build/
+dist/
+.DS_Store
+.idea/
+.vscode/
+coverage/
+*.pem
+backend/run_*.js
+backend/check_*.js

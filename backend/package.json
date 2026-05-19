@@ -1,0 +1,26 @@
+{
+  "name": "vivo-broker-backend",
+  "version": "1.0.0",
+  "description": "VIVO — Brokerage de urgencias logísticas con IA. Tu carga, VIVO.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "migrate": "node scripts/run-migrations.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.96.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
+    "node-cron": "^4.2.1",
+    "pdfkit": "^0.18.0",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
