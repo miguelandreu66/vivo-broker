@@ -33,6 +33,9 @@ const NAV = [
   // ── Estratégico ────────────────────────────────────
   { to: '/auditor',       label: 'Auditor IA',    icon: '🔍', roles: ['director'] },
 
+  // ── Estratégico ────────────────────────────────────
+  { to: '/operativo',     label: 'Operativo',     icon: '📊', roles: ['director','admin','caja','logistica'] },
+
   // ── Configuración ─────────────────────────────────
   { to: '/costos-ia',     label: 'Costos IA',     icon: '💸', roles: ['director','admin'] },
   { to: '/configuracion', label: 'Configuración', icon: '⚙️', roles: ['director','admin'] },

@@ -392,6 +392,127 @@ router.post('/:id/asignar-transportista', auth(['director','admin']), async (req
   }
 });
 
+// Dashboard operativo consolidado: KPIs + funnel + serie diaria + top transportistas
+// Una sola llamada para la página /operativo
+router.get('/operativo/stats', auth(['director','admin','caja','logistica']), async (req, res) => {
+  const dias = Math.max(1, Math.min(parseInt(req.query.dias || '30', 10), 365));
+  try {
+    // ── KPIs principales (últimos N días) ──
+    const { rows: [kpis] } = await db.query(`
+      SELECT
+        COUNT(*)::int                                                                       AS leads_total,
+        COUNT(*) FILTER (WHERE estado = 'ganado')::int                                      AS leads_ganados,
+        COUNT(*) FILTER (WHERE estado IN ('cotizado','seguimiento','negociacion'))::int     AS leads_pipeline,
+        COUNT(*) FILTER (WHERE estado = 'perdido')::int                                     AS leads_perdidos,
+        COALESCE(AVG(total) FILTER (WHERE estado = 'ganado'), 0)::float                     AS ticket_promedio,
+        COALESCE(SUM(total) FILTER (WHERE estado = 'ganado'), 0)::float                     AS gmv_total,
+        COALESCE(SUM(comision_andreu) FILTER (WHERE estado = 'ganado'), 0)::float           AS comisiones_total,
+        COALESCE(AVG(
+          EXTRACT(EPOCH FROM (asignado_at - created_at))/3600
+        ) FILTER (WHERE asignado_at IS NOT NULL), 0)::float                                 AS horas_promedio_asignacion
+      FROM leads
+      WHERE created_at >= NOW() - INTERVAL '${dias} days'
+    `);
+
+    // ── Conversión por tier ──
+    const { rows: porTier } = await db.query(`
+      SELECT
+        COALESCE(tier_servicio, 'standard')                                                 AS tier,
+        COUNT(*)::int                                                                       AS total,
+        COUNT(*) FILTER (WHERE estado = 'ganado')::int                                      AS ganados,
+        CASE WHEN COUNT(*) > 0
+             THEN (COUNT(*) FILTER (WHERE estado = 'ganado')::float / COUNT(*) * 100)
+             ELSE 0
+        END::float                                                                          AS conversion_pct,
+        COALESCE(AVG(total) FILTER (WHERE estado = 'ganado'), 0)::float                     AS ticket_promedio
+      FROM leads
+      WHERE created_at >= NOW() - INTERVAL '${dias} days'
+      GROUP BY 1
+      ORDER BY CASE COALESCE(tier_servicio, 'standard')
+        WHEN 'critical' THEN 1
+        WHEN 'express'  THEN 2
+        WHEN 'urgent'   THEN 3
+        ELSE 4
+      END
+    `);
+
+    // ── Serie diaria (leads/día) ──
+    const { rows: serie } = await db.query(`
+      WITH dias AS (
+        SELECT generate_series(
+          (NOW() - INTERVAL '${dias} days')::date,
+          NOW()::date,
+          INTERVAL '1 day'
+        )::date AS fecha
+      )
+      SELECT
+        d.fecha::text                                                                       AS fecha,
+        COALESCE(COUNT(l.id), 0)::int                                                       AS leads,
+        COALESCE(COUNT(l.id) FILTER (WHERE l.estado = 'ganado'), 0)::int                    AS ganados,
+        COALESCE(SUM(l.total) FILTER (WHERE l.estado = 'ganado'), 0)::float                 AS gmv
+      FROM dias d
+      LEFT JOIN leads l ON l.created_at::date = d.fecha
+      GROUP BY d.fecha
+      ORDER BY d.fecha ASC
+    `);
+
+    // ── Top 5 transportistas (por viajes ganados últimos N días) ──
+    const { rows: topTransportistas } = await db.query(`
+      SELECT
+        t.id,
+        t.razon_social,
+        t.calificacion::float                                                               AS score,
+        COUNT(l.id)::int                                                                    AS leads_asignados,
+        COUNT(l.id) FILTER (WHERE l.estado = 'ganado')::int                                 AS leads_ganados,
+        COALESCE(SUM(l.comision_andreu) FILTER (WHERE l.estado = 'ganado'), 0)::float       AS comisiones
+      FROM transportistas_externos t
+      LEFT JOIN leads l ON l.transportista_externo_id = t.id
+        AND l.created_at >= NOW() - INTERVAL '${dias} days'
+      WHERE t.activo = true
+      GROUP BY t.id, t.razon_social, t.calificacion
+      HAVING COUNT(l.id) > 0 OR t.calificacion >= 4
+      ORDER BY leads_ganados DESC, score DESC NULLS LAST
+      LIMIT 5
+    `);
+
+    // ── Funnel: visitas → cotizaciones → leads → ganados ──
+    // Visitas y cotizaciones de marketing si la tabla existe (tabla creada en 002_marketing_tracking)
+    let funnel = {
+      visitas: 0,
+      cotizaciones: 0,
+      leads: kpis.leads_total || 0,
+      ganados: kpis.leads_ganados || 0,
+    };
+    try {
+      const { rows: [v] } = await db.query(`
+        SELECT COUNT(*)::int AS total FROM marketing_visitas
+        WHERE creado_en >= NOW() - INTERVAL '${dias} days'
+      `);
+      funnel.visitas = v?.total || 0;
+    } catch { /* tabla no existe, ignora */ }
+    try {
+      const { rows: [c] } = await db.query(`
+        SELECT COUNT(*)::int AS total FROM leads
+        WHERE created_at >= NOW() - INTERVAL '${dias} days'
+          AND estado IN ('cotizado','seguimiento','negociacion','ganado','perdido')
+      `);
+      funnel.cotizaciones = c?.total || 0;
+    } catch { /* ignora */ }
+
+    res.json({
+      dias_ventana: dias,
+      kpis,
+      por_tier: porTier,
+      serie_diaria: serie,
+      top_transportistas: topTransportistas,
+      funnel,
+    });
+  } catch (e) {
+    console.error('operativo/stats:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Resumen del módulo broker (cartera, comisiones, ranking)
 router.get('/broker/resumen', auth(['director','admin']), async (_req, res) => {
   try {

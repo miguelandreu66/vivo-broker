@@ -14,6 +14,7 @@ import Privacidad from './pages/Privacidad';
 import Terminos from './pages/Terminos';
 import Onboarding from './pages/Onboarding';
 import CostosIA from './pages/CostosIA';
+import Operativo from './pages/Operativo';
 
 // Agentes IA
 import AgentesIA from './pages/AgentesIA';
@@ -97,7 +98,8 @@ function AppRoutes() {
             {/* Estratégico */}
             <Route path="auditor" element={<PrivateRoute roles={['director']}><AuditorIA /></PrivateRoute>} />
 
-            {/* Costos IA */}
+            {/* Operativo + Costos IA */}
+            <Route path="operativo" element={<PrivateRoute roles={['director','admin','caja','logistica']}><Operativo /></PrivateRoute>} />
             <Route path="costos-ia" element={<PrivateRoute roles={['director','admin']}><CostosIA /></PrivateRoute>} />
 
             {/* Configuración */}

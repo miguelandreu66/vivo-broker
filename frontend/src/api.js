@@ -64,6 +64,7 @@ export const api = {
   eliminarLead: (id) => req('DELETE', `/leads/${id}`),
   asignarTransportistaLead: (id, body) => req('POST', `/leads/${id}/asignar-transportista`, body),
   brokerResumen: () => req('GET', '/leads/broker/resumen'),
+  operativoStats: (dias = 30) => req('GET', `/leads/operativo/stats?dias=${dias}`),
 
   // ══ Transportistas ══════════════════════════════════════
   transportistasExternos: (params = '') => req('GET', `/transportistas${params}`),
