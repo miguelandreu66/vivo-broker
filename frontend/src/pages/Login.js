@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -8,16 +7,14 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { setUsuario } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); setError(null);
     try {
-      const r = await api.login(email, password);
-      localStorage.setItem('vivo_token', r.token);
-      setUsuario(r.usuario);
+      await login(email, password);
       navigate('/');
     } catch (e) {
       setError(e.message || 'Credenciales inválidas');

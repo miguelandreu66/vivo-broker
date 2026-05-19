@@ -20,6 +20,7 @@ import AuditorIA from './pages/AuditorIA';
 import Leads from './pages/Leads';
 import Broker from './pages/Broker';
 import Fiscal from './pages/Fiscal';
+import Configuracion from './pages/Configuracion';
 
 // ════════════════════════════════════════════════════════════════
 // VIVO — Tu carga, VIVO.
@@ -68,6 +69,9 @@ export default function App() {
 
             {/* Estratégico */}
             <Route path="auditor" element={<PrivateRoute roles={['director']}><AuditorIA /></PrivateRoute>} />
+
+            {/* Configuración */}
+            <Route path="configuracion" element={<PrivateRoute roles={['director','admin']}><Configuracion /></PrivateRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>

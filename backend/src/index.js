@@ -13,6 +13,8 @@ app.use(express.json({ limit: '10mb' }));
 
 // Routes core
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', require('./routes/configuracion'));  // monta /auth/api-keys/*
+app.use('/api/configuracion', require('./routes/configuracion'));
 app.use('/api/clientes', require('./routes/clientes'));
 app.use('/api/leads', require('./routes/leads'));
 
