@@ -147,15 +147,40 @@ Para arrancar (sandbox + free tiers): **~$25 USD/mes**.
 
 ## 🎯 Roadmap
 
-- [x] Schema DB inicial
-- [x] 12 agentes con system prompts
-- [x] Orchestrator + tools
-- [ ] Frontend rediseñado con branding VIVO (naranja/negro)
-- [ ] Deploy en Railway
-- [ ] Dominio vivocargo.com
-- [ ] Onboarding video del director
+### ✅ Listo (mayo 2026)
+- [x] Schema DB inicial + migrations runner idempotente
+- [x] 12 agentes con system prompts + orchestrator + tools
+- [x] Frontend con branding VIVO (naranja/dorado/negro)
+- [x] Landing pública `/landing` con tracking UTMs + funnel
+- [x] Cotizador público `/cotizar` con 3 tiers (CRITICAL/EXPRESS/URGENT)
+- [x] Onboarding wizard (password, Anthropic key, fiscal, tour)
+- [x] Página `/operativo` con KPIs reales (leads, conversión, top transportistas, funnel)
+- [x] Página `/costos-ia` con gasto Claude por agente
+- [x] PWA instalable + service worker + favicon SVG
+- [x] Helmet + CORS whitelist + 4 rate limiters
+- [x] ErrorBoundary global + Toast notifications
+- [x] Páginas legales LFPDPPP (`/privacidad`, `/terminos` B2B)
+- [x] Cron jobs (8 tareas automatizadas)
+- [x] Healthchecks expandidos (`/health`, `/health/full`, `/health/ready`)
+- [x] `railway.json` + script `migrate` listo para push-button deploy
+
+### ⏳ En curso
+- [ ] Deploy VIVO en Railway
+- [ ] Sacar Anthropic key real + meterla en producción
+
+### 📋 Antes del primer cliente
+- [ ] Constitución legal **VIVO S.A.P.I. de C.V.** (ver `docs/CONSTITUCION-SAPI.md`)
+- [ ] RFC corporativo SAT + cuenta bancaria empresarial
+- [ ] PAC contratado (Facturama) + Carta Porte 3.0 activado
+- [ ] Dominio `vivocargo.com` apuntado
+- [ ] 1 transportista real verificado
+- [ ] 1 cliente B2B con constancia fiscal
+
+### 🚀 Crecimiento (post-PMF)
+- [ ] Backup automático Postgres + Sentry monitoring
+- [ ] Tests automatizados (Vitest)
+- [ ] Estrategia de adquisición #1 (canal + mensaje)
 - [ ] Manual operativo de administradora
-- [ ] Marketing inicial
 
 ---
 
