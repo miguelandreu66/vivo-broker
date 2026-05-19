@@ -21,6 +21,8 @@ import Leads from './pages/Leads';
 import Broker from './pages/Broker';
 import Fiscal from './pages/Fiscal';
 import Configuracion from './pages/Configuracion';
+import Clientes from './pages/Clientes';
+import CotizarInterno from './pages/CotizarInterno';
 
 // ════════════════════════════════════════════════════════════════
 // VIVO — Tu carga, VIVO.
@@ -54,10 +56,13 @@ export default function App() {
 
             {/* Pipeline comercial */}
             <Route path="leads" element={<PrivateRoute roles={['director','admin','caja','logistica']}><Leads /></PrivateRoute>} />
+            <Route path="clientes" element={<PrivateRoute roles={['director','admin','caja']}><Clientes /></PrivateRoute>} />
+            <Route path="cotizar-interno" element={<PrivateRoute roles={['director','admin','caja','logistica']}><CotizarInterno /></PrivateRoute>} />
             <Route path="vendedor-ia" element={<PrivateRoute roles={['director','admin','caja']}><VendedorIA /></PrivateRoute>} />
 
             {/* Red broker */}
             <Route path="broker" element={<PrivateRoute roles={['director','admin','logistica']}><Broker /></PrivateRoute>} />
+            <Route path="broker-finanzas" element={<PrivateRoute roles={['director','admin','caja']}><Broker /></PrivateRoute>} />
             <Route path="asignador" element={<PrivateRoute roles={['director','admin','logistica']}><AsignadorIA /></PrivateRoute>} />
 
             {/* Finanzas */}
