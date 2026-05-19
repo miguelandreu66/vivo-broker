@@ -34,6 +34,7 @@ const NAV = [
   { to: '/auditor',       label: 'Auditor IA',    icon: '🔍', roles: ['director'] },
 
   // ── Configuración ─────────────────────────────────
+  { to: '/costos-ia',     label: 'Costos IA',     icon: '💸', roles: ['director','admin'] },
   { to: '/configuracion', label: 'Configuración', icon: '⚙️', roles: ['director','admin'] },
 ];
 

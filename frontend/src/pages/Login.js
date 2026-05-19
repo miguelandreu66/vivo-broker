@@ -15,7 +15,9 @@ export default function Login() {
     setLoading(true); setError(null);
     try {
       await login(email, password);
-      navigate('/');
+      // Si es la primera vez (o no completó onboarding), enviarlo al wizard
+      const onboardingDone = localStorage.getItem('vivo_onboarding_done') === '1';
+      navigate(onboardingDone ? '/' : '/onboarding');
     } catch (e) {
       setError(e.message || 'Credenciales inválidas');
     } finally { setLoading(false); }

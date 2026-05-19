@@ -48,12 +48,16 @@ router.get('/usuarios', auth(['director', 'admin']), async (req, res) => {
   res.json(rows);
 });
 
-// Cambiar contraseña
-router.put('/password', auth(), async (req, res) => {
+// Cambiar contraseña (acepta /password y alias /cambiar-password)
+const cambiarPassword = async (req, res) => {
   const { password_actual, password_nueva } = req.body;
+  if (!password_nueva || password_nueva.length < 8) {
+    return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
+  }
   try {
     const { rows } = await db.query('SELECT password_hash FROM usuarios WHERE id=$1', [req.usuario.id]);
-    const valid = await bcrypt.compare(password_actual, rows[0].password_hash);
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    const valid = await bcrypt.compare(password_actual || '', rows[0].password_hash);
     if (!valid) return res.status(400).json({ error: 'Contraseña actual incorrecta' });
     const hash = await bcrypt.hash(password_nueva, 10);
     await db.query('UPDATE usuarios SET password_hash=$1 WHERE id=$2', [hash, req.usuario.id]);
@@ -61,7 +65,9 @@ router.put('/password', auth(), async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: 'Error al cambiar contraseña' });
   }
-});
+};
+router.put('/password', auth(), cambiarPassword);
+router.put('/cambiar-password', auth(), cambiarPassword);
 
 // Desactivar usuario
 router.put('/usuarios/:id/toggle', auth(['director']), async (req, res) => {

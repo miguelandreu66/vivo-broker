@@ -185,3 +185,104 @@ Te dejo todo listo. Cualquier duda, cuando regreses dime "**continúa**" y segui
 ---
 
 *— Tu asistente IA*
+
+---
+
+## 🌒 Segunda tanda nocturna (auto-pilot mientras dormías)
+
+Cuando dijiste "*ire a dormir avanza con autorizacion completa*" agregué otra ronda de mejoras core sin pedir permisos:
+
+### 🛡️ Seguridad backend (hardening producción-ready)
+- `backend/src/lib/seguridad.js` — `helmet`, `cors` por whitelist (env `FRONTEND_URL`) y **4 rate limiters**:
+  - `loginLimiter` (5 intentos / 15 min) — anti brute-force
+  - `cotizadorLimiter` (10 cotizaciones / hora) — anti spam público
+  - `agentesIaLimiter` (30 / min) — proteger gasto Claude
+  - `apiLimiter` (200 / min) — general
+- `app.set('trust proxy', 1)` para que rate limit detecte IP real en Railway.
+- Handler global de errores al final del stack.
+
+### ⏰ Cron jobs (automatismos sin intervención)
+- `backend/src/lib/cronJobs.js` arranca con el servidor.
+- **8 tareas**: Auditor IA semanal (lunes 7am), Retención IA diaria (9am), Atracción IA semanal (lunes 10am), Vendedor IA drip (cada 30min), CFDI reintentos (cada 15min), Cashflow watchdog (6:30am), Filtro transportistas (4:15am), limpieza de logs (3am).
+- Patrón `TAREAS` + `JOBS` con tracking + try/catch independiente por job.
+
+### 📈 Marketing tracking
+- Migración `migrations/002_marketing_tracking.sql` aplicada:
+  - `marketing_canales` (8 canales: directo, google_organic/ads, linkedin, fb_ads, whatsapp_grupos, referido, otro)
+  - `marketing_visitas` (sesión + UTMs + landing path)
+  - `marketing_campanas` (link a Atracción IA)
+  - `contenido_generado` (asociado a Atracción IA)
+  - Vista `marketing_funnel_canal` para reporting.
+
+### 🎨 UX / DX frontend
+- `components/ErrorBoundary.js` — Error boundary global con UI VIVO (gradient naranja + detalles colapsables + botón "Recargar VIVO").
+- `context/ToastContext.js` — Sistema de notificaciones tipo `toast.success/warn/error/info`, animación slide-in, auto-dismiss, montado en `App.js`.
+- `App.js` envuelto: `ErrorBoundary > AuthProvider > ToastProvider > AppRoutes`.
+
+### 🏛️ Páginas legales (LFPDPPP mexicana)
+- `/privacidad` — Aviso de Privacidad completo con 9 secciones (identidad responsable, datos recabados, finalidades primarias/secundarias, uso de IA, transferencias, ARCO, cookies, cambios, INAI).
+- `/terminos` — Términos y Condiciones B2B con 14 secciones (naturaleza broker, tiers + SLA, cotización, obligaciones, CFDI 4.0, responsabilidad y límites del broker, cancelaciones, fuerza mayor, jurisdicción Cuernavaca).
+- Linkeados desde el footer del landing.
+
+### 🌐 Landing pública `/landing`
+- `pages/Landing.js`: Header sticky, Hero gradient ("Tu carga, VIVO"), 6 beneficios, 3 tiers con color-coding (CRITICAL/EXPRESS/URGENT), 6 casos por sector, 5 pasos "Cómo funciona", FAQ con 6 preguntas, CTA final, footer legal.
+- Trackea visita automática vía `/api/atraccion-ia/tracking/visita` con `session_id` (sessionStorage) + UTMs + referrer.
+
+### 💸 Página Costos IA `/costos-ia`
+- `pages/CostosIA.js`: dashboard de gasto Claude (USD + MXN aprox).
+- Selector 7d/30d/90d.
+- 6 tarjetas: total USD, total MXN, invocaciones, tokens in/out, cache hits.
+- Tabla "por agente" con % del total + chip de modelo color-coded (Opus violeta / Sonnet azul / Haiku verde).
+- Tabla "últimas 25 invocaciones".
+- Tip box con consejos para bajar costos.
+- Link agregado al sidebar (solo director/admin).
+
+### 🪄 Onboarding wizard `/onboarding`
+- `pages/Onboarding.js` con 5 pasos: Bienvenida → Contraseña → Anthropic key → Datos fiscales → Listo.
+- Forzado en primer login (Login.js redirige a /onboarding si `localStorage.vivo_onboarding_done !== '1'`).
+- Endpoint backend `PUT /api/auth/cambiar-password` (alias del `/password` existente).
+- Permite saltar cada paso; valida nueva password ≠ vivo2026 + ≥ 8 caracteres.
+
+### 📱 PWA (instalable)
+- `public/manifest.json` con shortcuts (Cotizar, Leads, Dashboard), categorías, lang es-MX, orientation portrait-primary.
+- `public/favicon.svg` — V con gradient naranja → dorado sobre negro.
+- `public/service-worker.js` — Estrategia híbrida:
+  - API calls: passthrough (nunca cachear).
+  - Navegación HTML: network-first con fallback cache.
+  - Static (JS/CSS/img): cache-first.
+  - Limpieza automática de versiones viejas.
+- `index.html` enlaza manifest + favicon SVG + apple-touch-icon.
+- `index.js` registra SW solo en `NODE_ENV=production`.
+
+### 🧪 Validación
+- `npm run build` (CRA) pasa sin warnings ✅
+- `node -c` sobre backend pasa ✅
+
+### 🗂️ Archivos nuevos en este push
+```
+backend/src/lib/cronJobs.js
+backend/src/lib/seguridad.js
+backend/src/routes/auth.js          (modificado)
+backend/src/index.js                (modificado)
+backend/package.json                (+helmet, +express-rate-limit)
+frontend/public/favicon.svg
+frontend/public/manifest.json       (rehecho)
+frontend/public/service-worker.js
+frontend/public/index.html          (manifest + favicon)
+frontend/src/index.js               (SW register)
+frontend/src/App.js                 (ErrorBoundary + Toast + nuevas rutas)
+frontend/src/components/ErrorBoundary.js
+frontend/src/components/Layout.js   (link Costos IA)
+frontend/src/context/ToastContext.js
+frontend/src/pages/Landing.js
+frontend/src/pages/Privacidad.js
+frontend/src/pages/Terminos.js
+frontend/src/pages/CostosIA.js
+frontend/src/pages/Onboarding.js
+frontend/src/pages/Login.js         (redirect a /onboarding)
+migrations/002_marketing_tracking.sql
+```
+
+### ✅ Estado al amanecer
+27 / 27 tareas completadas. Build pasa. Backend sintáctico OK. Listo para `npm start` en ambos lados o deploy Railway.
+

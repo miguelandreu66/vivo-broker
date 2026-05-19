@@ -1,12 +1,19 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 
 // Páginas core
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CotizadorPublico from './pages/CotizadorPublico';
+import Landing from './pages/Landing';
+import Privacidad from './pages/Privacidad';
+import Terminos from './pages/Terminos';
+import Onboarding from './pages/Onboarding';
+import CostosIA from './pages/CostosIA';
 
 // Agentes IA
 import AgentesIA from './pages/AgentesIA';
@@ -39,12 +46,27 @@ const PrivateRoute = ({ children, roles }) => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
+  );
+}
+
+function AppRoutes() {
+  return (
+    <BrowserRouter>
         <Routes>
           {/* Rutas públicas */}
           <Route path="/login" element={<Login />} />
           <Route path="/cotizar" element={<CotizadorPublico />} />
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/terminos" element={<Terminos />} />
+          <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
 
           {/* Rutas privadas con layout */}
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
@@ -75,11 +97,13 @@ export default function App() {
             {/* Estratégico */}
             <Route path="auditor" element={<PrivateRoute roles={['director']}><AuditorIA /></PrivateRoute>} />
 
+            {/* Costos IA */}
+            <Route path="costos-ia" element={<PrivateRoute roles={['director','admin']}><CostosIA /></PrivateRoute>} />
+
             {/* Configuración */}
             <Route path="configuracion" element={<PrivateRoute roles={['director','admin']}><Configuracion /></PrivateRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
   );
 }
