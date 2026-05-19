@@ -1,0 +1,9 @@
+{
+  "short_name": "VIVO",
+  "name": "VIVO — Brokerage de Urgencias Logísticas",
+  "icons": [],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#FF6B35",
+  "background_color": "#0A0A0A"
+}
