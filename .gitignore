@@ -9,6 +9,9 @@ dist/
 # Backups locales (NUNCA commitear datos)
 backups/
 *.json.gz
+
+# Docs privados (finanzas personales)
+docs/FINANZAS-PERSONALES.md
 .DS_Store
 .idea/
 .vscode/
