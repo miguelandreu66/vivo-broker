@@ -193,6 +193,42 @@ const TAREAS = {
       return { audit_log_borrados: a.rowCount, agentes_invocaciones_borradas: i.rowCount };
     },
   },
+
+  // ─── Backup diario (3:30am) ──
+  // Se puede deshabilitar con ENABLE_BACKUP=false. Si BACKUP_DIR no se define,
+  // usa el path por defecto del script. Si quieres off-site, scripts/upload-backup-r2.js
+  // (no incluido) puede leer el .json.gz y subirlo a Cloudflare R2 / S3.
+  backup_diario: {
+    schedule: '30 3 * * *',
+    descripcion: 'Backup — dump JSON.gz de toda la DB (3:30am)',
+    ejecutar: async () => {
+      if (process.env.ENABLE_BACKUP === 'false') {
+        return { skipped: true, razon: 'ENABLE_BACKUP=false' };
+      }
+      const { spawn } = require('child_process');
+      const path = require('path');
+      return new Promise((resolve) => {
+        const script = path.join(__dirname, '..', '..', 'scripts', 'backup-db.js');
+        const env = { ...process.env };
+        if (process.env.BACKUP_DIR) env.BACKUP_DIR = process.env.BACKUP_DIR;
+        const child = spawn('node', [script], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+        let out = '';
+        let err = '';
+        child.stdout.on('data', d => out += d.toString());
+        child.stderr.on('data', d => err += d.toString());
+        child.on('exit', code => {
+          if (code === 0) {
+            // Extraer la línea "💾 Backup guardado: ..."
+            const linea = out.split('\n').find(l => l.includes('Backup guardado')) || '';
+            resolve({ ok: true, resumen: linea.trim() || 'completo' });
+          } else {
+            resolve({ ok: false, error: err.slice(-500) || `exit ${code}` });
+          }
+        });
+        child.on('error', (e) => resolve({ ok: false, error: e.message }));
+      });
+    },
+  },
 };
 
 function iniciar() {

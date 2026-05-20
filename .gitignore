@@ -5,6 +5,10 @@ node_modules/
 *.log
 build/
 dist/
+
+# Backups locales (NUNCA commitear datos)
+backups/
+*.json.gz
 .DS_Store
 .idea/
 .vscode/
